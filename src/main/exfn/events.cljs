@@ -13,12 +13,12 @@
     :winner nil}))
 
 (defn update-game-state [board [row col] player]
-  (let [new-board (assoc-in board [row col] player)
-        winner (winner? new-board)
-        game-over? (no-more-moves? new-board)]
-    {:board new-board
-     :winner winner
-     :game-over? game-over?}))
+  (let [new-board (assoc-in board [row col] player)]
+   (-> {}
+       (assoc :board new-board)
+       (assoc :player ({:x :o :o :x} player))
+       (assoc :winner (winner? new-board))
+       (assoc :game-over? (no-more-moves? new-board)))))
 
 (rf/reg-event-db
  :update-board
@@ -26,11 +26,11 @@
    (if (and (= (get-in board [row col]) :_)
             (not winner)
             (not game-over?))
-     ;; add the player move and check if its game over a win.
-     (let [new-board (assoc-in board [row col] player)]
-       (-> db
-           (assoc :board new-board)
-           (assoc :player ({:x :o :o :x} player))
-           (assoc :winner (winner? new-board))
-           (assoc :game-over? (no-more-moves? new-board))))
+     (let [{:keys [winner game-over? board player] :as game}
+           (update-game-state board [row col] player)]
+       (if (or winner game-over?)
+         game
+         (update-game-state board 
+                            (cpu-move board player)
+                            player)))
      db)))

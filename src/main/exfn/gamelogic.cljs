@@ -17,12 +17,10 @@
        (some #{:_})
        nil?))
 
-(defn cpu-move [board cpu]
+(defn cpu-move [board player]
   (let [cpu-square (->> (map vector (apply concat board) (range))
                         (filter (fn [[a _]] (= a :_)))
                         (map second)
                         (shuffle)
                         (first))]
-    (assoc-in board
-              [(Math/floor (/ cpu-square 3)) (mod cpu-square 3)]
-              cpu)))
+    [(Math/floor (/ cpu-square 3)) (mod cpu-square 3)]))
